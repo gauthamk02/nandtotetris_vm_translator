@@ -18,12 +18,19 @@ public class Parser {
     String convertNextLine() {
         
         String command = codelist.get(currLine++);
-        String[] parts = command.split("\\s+");
+        //split string into array of words removing whitespace except space
+        String[] parts = command.split(" ");
+        //String[] parts = command.split("[^\\S ]+");
         String asm;
 
         CommandType cmd = getCommandType(parts[0]);
-        SegmentType seg = getSegmentType(parts[1]);
-        int i = Integer.parseInt(parts[2]);
+        SegmentType seg = null;
+        int i = 0;
+
+        if(cmd == CommandType.C_PUSH || cmd == CommandType.C_POP) {
+        seg = getSegmentType(parts[1]);
+        i = Integer.parseInt(parts[2]);
+        }
 
         switch(cmd) {
             case C_PUSH:
@@ -32,15 +39,42 @@ public class Parser {
             case C_POP:
                 asm = CodeWriter.pop(seg, i);
                 break;
-            // case C_ARITHMETIC:
-            //     asm.append(arithmetic(parts[0]));
-            //     break;
+            case C_ARITHMETIC:
+                asm = getArithemeticCommand(command);
+                break;
             default:
                 asm = "";
                 break;
         }
-        
+        if(asm == null || asm.equals("")) {
+            System.out.println("Error: " + command);
+        }
         return asm;
+    }
+
+    private String getArithemeticCommand(String command) {
+        switch(command) {
+            case "add":
+                return CodeWriter.add();
+            case "sub":
+                return CodeWriter.sub();
+            case "neg":
+                return CodeWriter.neg();
+            case "eq":
+                return CodeWriter.eq();
+            case "gt":
+                return CodeWriter.gt();
+            case "lt":
+                return CodeWriter.lt();
+            case "and":
+                return CodeWriter.and();
+            case "or":
+                return CodeWriter.or();
+            case "not":
+                return CodeWriter.not();
+            default:
+                return "";
+        }
     }
 
     private CommandType getCommandType(String command) {
@@ -90,9 +124,10 @@ public class Parser {
                 return SegmentType.SEG_THIS;
             case "that":
                 return SegmentType.SEG_THAT;
+            case "temp":
+                return SegmentType.SEG_TEMP;
             default:
                 return null;
         }
     }
-
 }
