@@ -9,7 +9,8 @@ public class VirtualMachine{
         }
 
         String inFilename = args[0];
-        String outFilename = inFilename.substring(0,inFilename.lastIndexOf('.')) + ".asm";
+        
+        String outFilename = "/home/gautham/Desktop/files/nandtotetris/nand2tetris/projects/07/MemoryAccess/BasicTest" + inFilename.substring(inFilename.lastIndexOf('/'),inFilename.lastIndexOf('.')) + ".asm";//inFilename.substring(0,inFilename.lastIndexOf('.')) + ".asm";
         File infile = new File(inFilename);
         Scanner filein;
         ArrayList<String> vmFile = new ArrayList<>();
@@ -26,7 +27,7 @@ public class VirtualMachine{
                     line = line.substring(0, line.indexOf("//"));
                 } 
 
-                vmFile.add(line.replaceAll("[\s&&[^ ]]", ""));
+                vmFile.add(line.replaceAll("[\\s&&[^ ]]", ""));
             }
 
             Parser parser = new Parser(vmFile);
@@ -42,6 +43,7 @@ public class VirtualMachine{
         catch(IOException e) {
             System.out.println(e);
             System.out.println(e.getStackTrace());
+            return;
         }
 
         System.out.println("Assembly code stored at " + outFilename);
