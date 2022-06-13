@@ -2,18 +2,18 @@ import java.util.HashMap;
 
 public class CodeWriter {
 
-    static HashMap<SegmentType, String> segmentMap = new HashMap<SegmentType, String>() {{
-        put(SegmentType.SEG_CONST, "SP");
-        put(SegmentType.SEG_ARG, "ARG");
-        put(SegmentType.SEG_LOCAL, "LCL");
-        put(SegmentType.SEG_STATIC, "STATIC");
-        put(SegmentType.SEG_THIS, "THIS");
-        put(SegmentType.SEG_THAT, "THAT");
-        put(SegmentType.SEG_TEMP, "TEMP");
-    }}; 
+    static HashMap<SegmentType, String> segmentMap = new HashMap<SegmentType, String>() {
+        {
+            put(SegmentType.SEG_CONST, "SP");
+            put(SegmentType.SEG_ARG, "ARG");
+            put(SegmentType.SEG_LOCAL, "LCL");
+            put(SegmentType.SEG_THIS, "THIS");
+            put(SegmentType.SEG_THAT, "THAT");
+        }
+    };
 
     static String push(SegmentType seg, int i) {
-        if(seg == SegmentType.SEG_CONST) {
+        if (seg == SegmentType.SEG_CONST) {
             /*
              * @i
              * D=A
@@ -25,14 +25,70 @@ public class CodeWriter {
              */
             String pushTemplate = "@{i}\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1";
             return pushTemplate.replace("{i}", Integer.toString(i));
+        } else if (seg == SegmentType.SEG_TEMP) {
+            /*
+             * @i
+             * D=A
+             * @5
+             * A=D+A
+             * D=M
+             * @SP
+             * A=M
+             * M=D
+             * @SP
+             * M=M+1
+             */
+            String pushTemplate = "@{i}\nD=A\n@5\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
+            return pushTemplate.replace("{i}", Integer.toString(i));
+        } else if (seg == SegmentType.SEG_STATIC) {
+            /*
+             * @i
+             * D=A
+             * @16
+             * A=D+A
+             * D=M
+             * @SP
+             * A=M
+             * M=D
+             * @SP
+             * M=M+1
+             */
+            String pushTemplate = "@{i}\nD=A\n@16\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
+            return pushTemplate.replace("{i}", Integer.toString(i));
+        } else if (seg == SegmentType.SEG_POINTER) {
+
+            if (i == 0) {
+                /*
+                 * @THIS
+                 * D=M
+                 * @SP
+                 * A=M
+                 * M=D
+                 * @SP
+                 * M=M+1
+                 */
+                String pushTemplate = "@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
+                return pushTemplate;
+            } else {
+                /*
+                 * @THAT
+                 * D=M
+                 * @SP
+                 * A=M
+                 * M=D
+                 * @SP
+                 * M=M+1
+                 */
+                String pushTemplate = "@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
+                return pushTemplate;
+            }
         }
 
         /*
-         * @{segAddr}
-         * D=A
          * @{i}
-         * D=D+A
-         * A=D
+         * D=A
+         * @{segName}
+         * A=D+M
          * D=M
          * @SP
          * A=M
@@ -40,16 +96,79 @@ public class CodeWriter {
          * @SP
          * M=M+1
          */
-        String pushTemplate = "@{segAddr}\nD=A\n@{i}\nD=D+A\nA=D\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
-        return pushTemplate.replace("{segAddr}", segmentMap.get(seg)).replace("{i}", Integer.toString(i));
+        String pushTemplate = "@{i}\nD=A\n@{segName}\nA=D+M\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1";
+        return pushTemplate.replace("{segName}", segmentMap.get(seg)).replace("{i}", Integer.toString(i));
     }
 
     static String pop(SegmentType seg, int i) {
+
+        if (seg == SegmentType.SEG_TEMP) {
+            /*
+             * @i
+             * D=A
+             * @5
+             * D=D+A
+             * @R13
+             * M=D
+             * @SP
+             * M=M-1
+             * A=M
+             * D=M
+             * @R13
+             * A=M
+             * M=D
+             */
+            String popTemplate = "@{i}\nD=A\n@5\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D";
+            return popTemplate.replace("{i}", Integer.toString(i));
+        } else if (seg == SegmentType.SEG_STATIC) {
+            /*
+             * @i
+             * D=A
+             * @16
+             * D=D+A
+             * @R13
+             * M=D
+             * @SP
+             * M=M-1
+             * A=M
+             * D=M
+             * @R13
+             * A=M
+             * M=D
+             */
+            String popTemplate = "@{i}\nD=A\n@16\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D";
+            return popTemplate.replace("{i}", Integer.toString(i));
+        } else if (seg == SegmentType.SEG_POINTER) {
+            if (i == 0) {
+                /*
+                 * @SP
+                 * M=M-1
+                 * A=M
+                 * D=M
+                 * @THIS
+                 * M=D
+                 */
+                String popTemplate = "@SP\nM=M-1\nA=M\nD=M\n@THIS\nM=D";
+                return popTemplate;
+            } else {
+                /*
+                 * @SP
+                 * M=M-1
+                 * A=M
+                 * D=M
+                 * @THAT
+                 * M=D
+                 */
+                String popTemplate = "@SP\nM=M-1\nA=M\nD=M\n@THAT\nM=D";
+                return popTemplate;
+            }
+        }
+
         /*
-         * @{segAddr}
-         * D=A
          * @{i}
-         * D=D+A
+         * D=A
+         * @{segName}
+         * D=D+M
          * @R13
          * M=D
          * @SP
@@ -60,8 +179,8 @@ public class CodeWriter {
          * A=M
          * M=D
          */
-        String popTemplate = "@{segAddr}\nD=A\n@{i}\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D";
-        return popTemplate.replace("{segAddr}", segmentMap.get(seg)).replace("{i}", Integer.toString(i));
+        String popTemplate = "@{i}\nD=A\n@{segName}\nD=D+M\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D";
+        return popTemplate.replace("{segName}", segmentMap.get(seg)).replace("{i}", Integer.toString(i));
     }
 
     static String add() {
@@ -74,8 +193,10 @@ public class CodeWriter {
          * M=M-1
          * A=M
          * M=M+D
+         * @SP
+         * M=M+1
          */
-        return "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D";
+        return "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1";
     }
 
     static String sub() {
@@ -88,8 +209,10 @@ public class CodeWriter {
          * M=M-1
          * A=M
          * M=M-D
+         * @SP
+         * M=M+1
          */
-        return "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D";
+        return "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D\n@SP\nM=M+1";
     }
 
     static String neg() {
@@ -222,4 +345,5 @@ enum SegmentType {
     SEG_THIS,
     SEG_THAT,
     SEG_TEMP,
+    SEG_POINTER
 }

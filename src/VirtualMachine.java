@@ -9,6 +9,7 @@ public class VirtualMachine{
         }
 
         String inFilename = args[0];
+        
         String outFilename = inFilename.substring(0,inFilename.lastIndexOf('.')) + ".asm";
         File infile = new File(inFilename);
         Scanner filein;
@@ -26,7 +27,7 @@ public class VirtualMachine{
                     line = line.substring(0, line.indexOf("//"));
                 } 
 
-                vmFile.add(line.replaceAll("[\s&&[^ ]]", ""));
+                vmFile.add(line.replaceAll("[\\s&&[^ ]]", ""));
             }
 
             Parser parser = new Parser(vmFile);
@@ -42,9 +43,11 @@ public class VirtualMachine{
         catch(IOException e) {
             System.out.println(e);
             System.out.println(e.getStackTrace());
+            return;
         }
 
         System.out.println("Assembly code stored at " + outFilename);
+        filein.close();
     }
     static void writetoFile(ArrayList<String> list, String filename) throws IOException {
         FileWriter fw = new FileWriter(filename);

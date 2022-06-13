@@ -4,7 +4,6 @@ public class Parser {
     ArrayList<String> codelist;
     int currLine;
     
-    
     public Parser(ArrayList<String> codelist) {
         this.codelist = codelist;
         this.currLine = 0;
@@ -126,6 +125,8 @@ public class Parser {
                 return SegmentType.SEG_THAT;
             case "temp":
                 return SegmentType.SEG_TEMP;
+            case "pointer":
+                return SegmentType.SEG_POINTER;
             default:
                 return null;
         }
