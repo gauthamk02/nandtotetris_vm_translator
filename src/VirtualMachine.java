@@ -33,7 +33,10 @@ public class VirtualMachine{
             Parser parser = new Parser(vmFile);
 
             while(parser.hasMoreLines()) {
-                hackFile.add(parser.convertNextLine());
+                String asm = parser.convertNextLine();
+                if(asm != null && !asm.isEmpty()) {
+                    hackFile.add(asm);
+                }
             }
 
             printFile(hackFile);

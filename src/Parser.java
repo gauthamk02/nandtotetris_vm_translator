@@ -3,35 +3,36 @@ import java.util.ArrayList;
 public class Parser {
     ArrayList<String> codelist;
     int currLine;
-    
+
     public Parser(ArrayList<String> codelist) {
         this.codelist = codelist;
         this.currLine = 0;
     }
 
     Boolean hasMoreLines() {
-        if(currLine < codelist.size()) return true;
+        if (currLine < codelist.size())
+            return true;
         return false;
     }
 
     String convertNextLine() {
-        
+
         String command = codelist.get(currLine++);
-        //split string into array of words removing whitespace except space
+        // split string into array of words removing whitespace except space
         String[] parts = command.split(" ");
-        //String[] parts = command.split("[^\\S ]+");
+        // String[] parts = command.split("[^\\S ]+");
         String asm;
 
         CommandType cmd = getCommandType(parts[0]);
         SegmentType seg = null;
         int i = 0;
 
-        if(cmd == CommandType.C_PUSH || cmd == CommandType.C_POP) {
-        seg = getSegmentType(parts[1]);
-        i = Integer.parseInt(parts[2]);
+        if (cmd == CommandType.C_PUSH || cmd == CommandType.C_POP) {
+            seg = getSegmentType(parts[1]);
+            i = Integer.parseInt(parts[2]);
         }
 
-        switch(cmd) {
+        switch (cmd) {
             case C_PUSH:
                 asm = CodeWriter.push(seg, i);
                 break;
@@ -41,18 +42,25 @@ public class Parser {
             case C_ARITHMETIC:
                 asm = getArithemeticCommand(command);
                 break;
+            case C_LABEL:
+                asm = "(" + parts[1] + ")";
+                break;
+            case C_GOTO:
+                asm = CodeWriter.goTo(parts[1]);
+                break;
+            case C_IFGOTO:
+                asm = CodeWriter.ifGoTo(parts[1]);
+                break;
             default:
                 asm = "";
                 break;
         }
-        if(asm == null || asm.equals("")) {
-            System.out.println("Error: " + command);
-        }
+
         return asm;
     }
 
     private String getArithemeticCommand(String command) {
-        switch(command) {
+        switch (command) {
             case "add":
                 return CodeWriter.add();
             case "sub":
@@ -77,7 +85,7 @@ public class Parser {
     }
 
     private CommandType getCommandType(String command) {
-        switch(command) {
+        switch (command) {
             case "add":
             case "sub":
             case "neg":
@@ -97,7 +105,7 @@ public class Parser {
             case "goto":
                 return CommandType.C_GOTO;
             case "if-goto":
-                return CommandType.C_IF;
+                return CommandType.C_IFGOTO;
             case "function":
                 return CommandType.C_FUNCTION;
             case "call":
@@ -110,7 +118,7 @@ public class Parser {
     }
 
     private SegmentType getSegmentType(String segment) {
-        switch(segment) {
+        switch (segment) {
             case "constant":
                 return SegmentType.SEG_CONST;
             case "argument":

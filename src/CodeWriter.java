@@ -323,6 +323,26 @@ public class CodeWriter {
          */
         return "@SP\nM=M-1\nA=M\nM=!M";
     }
+
+    static String goTo(String label) {
+        /*
+         * @{label}
+         * 0;JMP
+         */
+        return "@{label}\n0;JMP".replace("{label}", label);
+    }
+
+    static String ifGoTo(String label) {
+        /*
+         * @SP
+         * M=M-1
+         * A=M
+         * D=M
+         * @{label}
+         * D;JNE
+         */
+        return "@SP\nM=M-1\nA=M\nD=M\n@{label}\nD;JNE".replace("{label}", label);
+    }
 }
 
 enum CommandType {
@@ -331,7 +351,7 @@ enum CommandType {
     C_POP,
     C_LABEL,
     C_GOTO,
-    C_IF,
+    C_IFGOTO,
     C_FUNCTION,
     C_RETURN,
     C_CALL
